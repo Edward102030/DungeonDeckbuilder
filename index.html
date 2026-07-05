@@ -2,16 +2,168 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0b0c10">
     <title>Dungeon Deckbuilder</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
-    
+
     <div id="ui-layer">
-        <div id="hud"></div>
-        <div id="menus"></div>
+        
+        <div id="main-menu" class="screen active">
+            <h1 class="game-title">Dungeon Deckbuilder</h1>
+            <div class="menu-options">
+                <button id="btn-menu-start" class="ui-button primary">Start New Run</button>
+                <button id="btn-menu-characters" class="ui-button">Characters</button>
+                <button id="btn-menu-stats" class="ui-button">Statistics</button>
+                <button id="btn-menu-settings" class="ui-button">Settings</button>
+            </div>
+        </div>
+
+        <div id="character-select-screen" class="screen hidden">
+            <h2>Select Your Hero</h2>
+            <div id="character-grid" class="grid-container">
+                </div>
+            <div id="character-details" class="details-panel">
+                <h3 id="char-name">Hero Name</h3>
+                <p id="char-desc">Hero Description & Passive</p>
+                <div id="char-starter-deck"></div>
+            </div>
+            <div class="menu-actions">
+                <button id="btn-confirm-character" class="ui-button primary">Begin Journey</button>
+                <button id="btn-back-from-chars" class="ui-button">Back</button>
+            </div>
+        </div>
+
+        <div id="statistics-screen" class="screen hidden">
+            <h2>Lifetime Statistics</h2>
+            <div id="stats-container" class="stats-grid">
+                </div>
+            <button id="btn-back-from-stats" class="ui-button">Back</button>
+        </div>
+
+        <div id="settings-screen" class="screen hidden">
+            <h2>Settings</h2>
+            <div class="settings-group">
+                <label>Master Volume: <input type="range" id="vol-master" min="0" max="100" value="50"></label>
+                <label>SFX Volume: <input type="range" id="vol-sfx" min="0" max="100" value="50"></label>
+                <label><input type="checkbox" id="toggle-screenshake" checked> Enable Screen Shake</label>
+                <label><input type="checkbox" id="toggle-particles" checked> High Particle Density</label>
+            </div>
+            <button id="btn-back-from-settings" class="ui-button">Back</button>
+        </div>
+
+        <div id="hud" class="screen hidden">
+            <div class="hud-top">
+                <div class="player-stats">
+                    <div class="stat-bar health-bar">
+                        <div class="bar-fill" id="health-fill"></div>
+                        <span id="health-text" class="bar-text">100/100</span>
+                    </div>
+                    <div class="stat-bar armor-bar hidden" id="armor-container">
+                        <div class="bar-fill" id="armor-fill"></div>
+                        <span id="armor-text" class="bar-text">0</span>
+                    </div>
+                    <div class="energy-indicator">
+                        <span id="energy-text">3/3</span>
+                    </div>
+                </div>
+                
+                <div class="run-info">
+                    <div class="gold-indicator">Gold: <span id="gold-text">0</span></div>
+                    <div class="floor-indicator">Floor: <span id="floor-text">1</span></div>
+                    <button id="btn-toggle-minimap" class="ui-icon-button">Map</button>
+                </div>
+            </div>
+
+            <div id="status-effects-container" class="status-row"></div>
+
+            <div id="relics-container" class="relics-row"></div>
+        </div>
+
+        <div id="combat-ui" class="screen hidden">
+            <div class="deck-zones">
+                <div id="draw-pile" class="pile">
+                    <span id="draw-count">0</span>
+                </div>
+                <div id="card-hand" class="hand-container">
+                    </div>
+                <div id="discard-pile" class="pile">
+                    <span id="discard-count">0</span>
+                </div>
+            </div>
+            
+            <div class="turn-controls">
+                <button id="btn-end-turn" class="ui-button warning">End Turn</button>
+            </div>
+        </div>
+
+        <div id="in-game-overlays" class="screen hidden">
+            
+            <div id="pause-menu" class="sub-screen hidden">
+                <h2>Paused</h2>
+                <button id="btn-resume-game" class="ui-button primary">Resume</button>
+                <button id="btn-pause-settings" class="ui-button">Settings</button>
+                <button id="btn-abandon-run" class="ui-button danger">Abandon Run</button>
+            </div>
+
+            <div id="map-screen" class="sub-screen hidden">
+                <h2>Dungeon Map</h2>
+                <div id="map-container"></div>
+                <button id="btn-close-map" class="ui-button">Close Map</button>
+            </div>
+
+            <div id="shop-screen" class="sub-screen hidden">
+                <h2>Merchant</h2>
+                <div id="shop-inventory" class="grid-container"></div>
+                <button id="btn-leave-shop" class="ui-button">Leave</button>
+            </div>
+
+            <div id="event-screen" class="sub-screen hidden">
+                <h2 id="event-title">Mysterious Encounter</h2>
+                <p id="event-description">Event flavor text goes here...</p>
+                <div id="event-choices" class="choice-container">
+                    </div>
+            </div>
+
+            <div id="reward-screen" class="sub-screen hidden">
+                <h2>Victory</h2>
+                <div id="reward-list" class="list-container"></div>
+                <button id="btn-skip-rewards" class="ui-button">Skip</button>
+            </div>
+
+            <div id="deck-screen" class="sub-screen hidden">
+                <h2>Current Deck</h2>
+                <div id="deck-grid" class="grid-container"></div>
+                <button id="btn-close-deck" class="ui-button">Close</button>
+            </div>
+
+            <div id="run-summary-screen" class="sub-screen hidden">
+                <h2 id="summary-title">Run Over</h2>
+                <div id="summary-stats">
+                    </div>
+                <button id="btn-return-menu" class="ui-button primary">Return to Menu</button>
+            </div>
+            
+        </div>
+
+        <div id="global-tooltip" class="tooltip hidden">
+            <h4 id="tooltip-title">Title</h4>
+            <p id="tooltip-desc">Description</p>
+        </div>
+
+        <div id="mobile-controls" class="hidden">
+            <div id="virtual-joystick" class="joystick-base">
+                <div id="joystick-knob" class="joystick-knob"></div>
+            </div>
+            <div class="action-buttons">
+                <button id="btn-mobile-dash" class="mobile-action-btn">Dash</button>
+                <button id="btn-mobile-interact" class="mobile-action-btn">Interact</button>
+            </div>
+        </div>
+
     </div>
 
     <script src="game.js"></script>
