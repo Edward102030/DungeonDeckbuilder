@@ -1,172 +1,228 @@
-// Bagua System
-class BaguaSystem {
-    constructor() { this.active = new Set(); }
-    toggle(trigram) {
-        this.active.has(trigram) ? this.active.delete(trigram) : this.active.add(trigram);
-        this.updateUI();
-    }
-    updateUI() {
-        ['heaven', 'fire', 'water'].forEach(t => {
-            const el = document.querySelector(`.trigram-${t}`);
-            if(el) el.dataset.active = this.active.has(t);
-        });
-    }
-}
-
-// Game Engine
 class GameEngine {
     constructor() {
-        this.bagua = new BaguaSystem();
         this.heroesDatabase = [];
         this.cardsDatabase = [];
         this.deck = [];
         this.discardPile = [];
-        this.localPlayer = { hp: 5, maxHp: 5, hand: [] };
+        this.players = {
+            player: { id: "player", hp: 4, maxHp: 4, hand: [], isAI: false, name: "Liang" },
+            ai1: { id: "ai1", hp: 4, maxHp: 4, hand: [], isAI: true, stationId: "opponent-1", nextMoveCache: null },
+            ai2: { id: "ai2", hp: 4, maxHp: 4, hand: [], isAI: true, stationId: "opponent-2", nextMoveCache: null },
+            ai3: { id: "ai3", hp: 4, maxHp: 4, hand: [], isAI: true, stationId: "opponent-3", nextMoveCache: null }
+        };
+        this.turnOrder = ["player", "ai1", "ai2", "ai3"];
+        this.currentTurnIdx = 0;
     }
 
     async init() {
         try {
-            // 1. Fetch heroes database
             const heroesResponse = await fetch('cards/heroes.json');
             const heroesData = await heroesResponse.json();
             this.heroesDatabase = heroesData.heroes;
             
-            // 2. Fetch cards database
             const cardsResponse = await fetch('cards/cards.json');
             const cardsData = await cardsResponse.json();
             this.cardsDatabase = cardsData.cards;
+
+            this.buildDeck();
+            this.setupInitialState();
             
-            console.log(`Engine loaded: ${this.heroesDatabase.length} Heroes, ${this.cardsDatabase.length} Cards.`);
+            // Background pre-calculation setup loop
+            this.precalculateAllAIMoves();
 
-            // 3. Build and shuffle our combat deck
-            this.buildAndShuffleDeck();
-
-            // 4. Set up local player using Liang (hero_001)
-            const currentHero = this.heroesDatabase.find(h => h.id === "hero_001") || this.heroesDatabase[0];
-            this.localPlayer.hp = currentHero.baseHealth;
-            this.localPlayer.maxHp = currentHero.baseHealth;
-
-            // 5. Deal a standard starting hand of 4 cards to the player
-            this.drawCardsToHand(4);
-
-            // 6. Refresh the visual board state
-            this.renderHeroHUD(currentHero);
-            this.renderOpponents();
-            this.renderPlayerHand();
-
+            this.renderBoard();
         } catch (error) {
-            console.error("Error loading game databases:", error);
+            console.error("Initialization breakdown error:", error);
         }
     }
 
-    buildAndShuffleDeck() {
-        // Copy the master card list into our active play deck
+    buildDeck() {
         this.deck = [...this.cardsDatabase];
-        
-        // Fisher-Yates Shuffle Algorithm
         for (let i = this.deck.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [this.deck[i], this.deck[j]] = [this.deck[j], this.deck[i]];
         }
-        console.log("Deck successfully shuffled!");
     }
 
-    drawCardsToHand(amount) {
-        for (let i = 0; i < amount; i++) {
-            if (this.deck.length === 0) {
-                // If draw deck runs out, recycle the discard pile
-                if (this.discardPile.length === 0) break; 
+    setupInitialState() {
+        // Initialize Player Hand Array
+        this.drawToTarget(this.players.player, 4);
+
+        // Assign and Deal Out starting card positions to pre-allocated target AI structures
+        this.turnOrder.forEach((pKey, index) => {
+            const p = this.players[pKey];
+            const databaseHero = this.heroesDatabase[index] || this.heroesDatabase[0];
+            p.name = databaseHero.name;
+            p.hp = databaseHero.baseHealth;
+            p.maxHp = databaseHero.baseHealth;
+            if (p.isAI) this.drawToTarget(p, 4);
+        });
+    }
+
+    drawToTarget(playerObj, count) {
+        for(let i=0; i<count; i++) {
+            if(this.deck.length === 0) {
+                if (this.discardPile.length === 0) break;
                 this.deck = [...this.discardPile];
                 this.discardPile = [];
-                this.buildAndShuffleDeck();
+                this.buildDeck();
             }
-            const drawnCard = this.deck.pop();
-            this.localPlayer.hand.push(drawnCard);
+            playerObj.hand.push(this.deck.pop());
         }
     }
 
-    renderHeroHUD(hero) {
-        const nameElement = document.querySelector('.hero-name');
-        if (nameElement) nameElement.textContent = `${hero.name} (${hero.faction})`;
+    /**
+     * Predictive AI Optimization Loop
+     * Runs calculations prior to turn initiation phases for rapid resolution execution.
+     */
+    precalculateAllAIMoves() {
+        Object.keys(this.players).forEach(pKey => {
+            const actor = this.players[pKey];
+            if (!actor.isAI || actor.hp <= 0) return;
 
-        const hpContainer = document.getElementById('local-health');
-        if (hpContainer) {
-            hpContainer.innerHTML = '';
-            for(let i = 0; i < this.localPlayer.maxHp; i++) {
-                hpContainer.innerHTML += `<span class="health-pip ${i < this.localPlayer.hp ? 'active' : 'empty'}"></span>`;
-            }
-        }
-    }
-
-    renderOpponents() {
-        for (let i = 1; i <= 3; i++) {
-            const opponentData = this.heroesDatabase[i];
-            const station = document.getElementById(`opponent-${i}`);
+            // Search hand composition trees for utility triggers
+            let optimalCardIdx = actor.hand.findIndex(c => c.type === "Basic" || c.type === "Tactical");
             
-            if (station && opponentData) {
-                const statsPanel = station.querySelector('.stats-panel');
-                if (statsPanel) {
-                    statsPanel.innerHTML = `<strong>${opponentData.name}</strong><br>🩸 ${opponentData.baseHealth}/${opponentData.baseHealth}`;
+            if (optimalCardIdx === -1 && actor.hand.length > 0) optimalCardIdx = 0;
+
+            if (optimalCardIdx !== -1) {
+                actor.nextMoveCache = {
+                    cardIndex: optimalCardIdx,
+                    target: "player", // Fast threat focus mapping logic
+                    estimatedValue: 10
+                };
+            } else {
+                actor.nextMoveCache = { action: "pass", estimatedValue: 0 };
+            }
+        });
+        console.log("AI Decision Trees updated background cache states.");
+    }
+
+    executeAICachedTurn(aiKey) {
+        const actor = this.players[aiKey];
+        if (!actor || actor.hp <= 0) { this.nextTurn(); return; }
+
+        document.getElementById("current-turn-display").textContent = actor.name;
+        
+        // Execute immediately based on the cached prediction
+        setTimeout(() => {
+            const intent = actor.nextMoveCache;
+            if (intent && intent.cardIndex !== undefined && actor.hand[intent.cardIndex]) {
+                const cardPlayed = actor.hand.splice(intent.cardIndex, 1)[0];
+                this.discardPile.push(cardPlayed);
+
+                // Update Central Circle Area Display
+                this.updateCenterField(cardPlayed);
+                
+                // Damage calculation evaluation target check 
+                if (this.players[intent.target]) {
+                    this.players[intent.target].hp = Math.max(0, this.players[intent.target].hp - 1);
+                }
+                console.log(`${actor.name} quickly resolved precalculated play: ${cardPlayed.title}`);
+            }
+
+            // Instantly clear out cache hooks and prep next states in advance
+            this.precalculateAllAIMoves();
+            this.renderBoard();
+            this.nextTurn();
+        }, 800); // Quick resolution speed
+    }
+
+    nextTurn() {
+        this.currentTurnIdx = (this.currentTurnIdx + 1) % this.turnOrder.length;
+        const nextActorKey = this.turnOrder[this.currentTurnIdx];
+        
+        if (this.players[nextActorKey].isAI) {
+            this.executeAICachedTurn(nextActorKey);
+        } else {
+            document.getElementById("current-turn-display").textContent = "Player";
+        }
+    }
+
+    updateCenterField(card) {
+        const field = document.getElementById("center-played-card-slot");
+        if (!field) return;
+        const isRed = card.suit === 'Hearts' || card.suit === 'Diamonds';
+        const suitSym = { 'Spades': '♠', 'Hearts': '♥', 'Clubs': '♣', 'Diamonds': '♦' }[card.suit] || '';
+        
+        field.innerHTML = `
+            <div class="game-card" style="margin: 10px auto; transform: scale(0.95);">
+                <div class="card-top-row ${isRed ? 'red-suit' : ''}">
+                    <span class="card-title-text">${card.title}</span>
+                    <span class="card-poker-value">${card.rank}${suitSym}</span>
+                </div>
+                <div class="card-art-box"><span class="art-icon">🔮</span></div>
+            </div>
+        `;
+    }
+
+    renderBoard() {
+        // Player Name text updates
+        document.querySelector('.hero-name').textContent = `${this.players.player.name} (Azure Dominion)`;
+        
+        // Setup Player Health Tracker elements
+        const hpContainer = document.getElementById('local-health');
+        hpContainer.innerHTML = '';
+        for(let i=0; i<this.players.player.maxHp; i++) {
+            hpContainer.innerHTML += `<span class="health-pip ${i < this.players.player.hp ? 'active' : ''}"></span>`;
+        }
+
+        // Opponent Array Render Configuration
+        let aiCounter = 1;
+        Object.keys(this.players).forEach(pKey => {
+            const p = this.players[pKey];
+            if (!p.isAI) return;
+
+            const el = document.getElementById(`opponent-${aiCounter}`);
+            if (el) {
+                el.innerHTML = `
+                    <div class="inner-hero-avatar"></div>
+                    <strong style="font-size:0.75rem; display:block; min-height:24px;">${p.name}</strong>
+                    <div class="health-bar"></div>
+                `;
+                const bar = el.querySelector('.health-bar');
+                for(let i=0; i<p.maxHp; i++) {
+                    bar.innerHTML += `<span class="health-pip ${i < p.hp ? 'active' : ''}"></span>`;
                 }
             }
-        }
-    }
+            aiCounter++;
+        });
 
-    renderPlayerHand() {
-        // Targets your main bottom area container
-        const handContainer = document.getElementById('player-hand') || document.querySelector('.card-container') || document.querySelector('.hand');
-        if (!handContainer) {
-            console.warn("Could not locate hand container element in index.html");
-            return;
-        }
-
-        handContainer.innerHTML = ''; // Clear out old placeholder markup
-
-        this.localPlayer.hand.forEach(card => {
-            // Check card suit to apply proper coloration dynamically
+        // Player Card Hand Builder Rendering
+        const handContainer = document.getElementById('player-hand');
+        handContainer.innerHTML = '';
+        
+        this.players.player.hand.forEach(card => {
             const isRed = card.suit === 'Hearts' || card.suit === 'Diamonds';
             const suitSymbol = { 'Spades': '♠', 'Hearts': '♥', 'Clubs': '♣', 'Diamonds': '♦' }[card.suit] || '';
+            const artIcon = { 'Attack': '⚔️', 'Defense': '🛡️', 'Equipment': '🗡️', 'Tactical': '📜' }[card.subType] || '🃏';
 
             const cardElement = document.createElement('div');
-            cardElement.className = `game-card type-${card.type.toLowerCase()}`;
-            if (isRed) cardElement.classList.add('red-suit'); // Use CSS styling hooks
-
+            cardElement.className = 'game-card';
+            
             cardElement.innerHTML = `
-                <div class="card-header">
-                    <span class="card-title">${card.title}</span>
-                    <span class="card-poker" style="color: ${isRed ? '#ff4d4d' : '#ffffff'}">${card.rank}${suitSymbol}</span>
+                <div class="card-top-row ${isRed ? 'red-suit' : ''}">
+                    <span class="card-title-text">${card.title}</span>
+                    <span class="card-poker-value">${card.rank}${suitSymbol}</span>
                 </div>
-                <div class="card-body">
-                    <span class="card-type-tag">${card.subType}</span>
-                    <p class="card-flavor">"${card.flavorText}"</p>
+                <div class="card-art-box">
+                    <span class="art-icon">${artIcon}</span>
                 </div>
             `;
             handContainer.appendChild(cardElement);
         });
+
+        // Set live remaining text values
+        document.querySelector('.deck-count').textContent = this.deck.length;
+        document.querySelector('.discard-count').textContent = this.discardPile.length;
     }
 }
 
-// Initialize on DOM load
 document.addEventListener('DOMContentLoaded', () => {
     const game = new GameEngine();
     game.init();
 
-    // Modal UI Bindings
-    const settingsBtn = document.getElementById('btn-settings');
-    const modalContainer = document.getElementById('modal-container');
-    const modalSettings = document.getElementById('modal-settings');
-    const closeModalBtn = document.querySelector('.close-modal');
-
-    if (settingsBtn && modalContainer && modalSettings) {
-        settingsBtn.onclick = () => {
-            modalContainer.classList.remove('hidden');
-            modalSettings.classList.remove('hidden');
-        };
-    }
-    if (closeModalBtn && modalContainer && modalSettings) {
-        closeModalBtn.onclick = () => {
-            modalContainer.classList.add('hidden');
-            modalSettings.classList.add('hidden');
-        };
-    }
+    document.getElementById('btn-end-phase').onclick = () => {
+        if (game.turnOrder[game.currentTurnIdx] === "player") game.nextTurn();
+    };
 });
