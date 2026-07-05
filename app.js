@@ -1,12 +1,3 @@
-// Database Mock
-const GameDatabase = {
-    cards: [
-        { id: "c1", title: "Piercing Strike", effect: "Damage", amount: 1, range: 1 },
-        { id: "c2", title: "Guard Stance", effect: "Defend", amount: 1, range: 0 },
-        { id: "c3", title: "Whirlwind Slash", effect: "Damage", amount: 1, range: 2 }
-    ]
-};
-
 // Bagua System
 class BaguaSystem {
     constructor() { this.active = new Set(); }
@@ -26,59 +17,84 @@ class BaguaSystem {
 class GameEngine {
     constructor() {
         this.bagua = new BaguaSystem();
-        this.localPlayer = { hp: 5, maxHp: 5, hand: ["c1", "c2", "c3"] };
+        this.heroesDatabase = [];
+        this.localPlayer = { hp: 5, maxHp: 5, hand: [] };
     }
 
-    init() {
-        this.renderHealth();
-        this.renderHand();
-    }
+    async init() {
+        // 1. Fetch the heroes from your JSON file!
+        try {
+            const response = await fetch('cards/heroes.json');
+            const data = await response.json();
+            this.heroesDatabase = data.heroes;
+            console.log("Database Loaded Successfully:", this.heroesDatabase);
+            
+            // 2. Set up our local player using Liang (hero_001) from the JSON data
+            const currentHero = this.heroesDatabase.find(h => h.id === "hero_001") || this.heroesDatabase[0];
+            this.localPlayer.hp = currentHero.baseHealth;
+            this.localPlayer.maxHp = currentHero.baseHealth;
 
-    renderHealth() {
-        const hpContainer = document.getElementById('local-health');
-        hpContainer.innerHTML = '';
-        for(let i=0; i<this.localPlayer.maxHp; i++) {
-            hpContainer.innerHTML += `<span class="health-pip ${i < this.localPlayer.hp ? 'active' : 'empty'}"></span>`;
+            // 3. Update the UI layout
+            this.renderHeroHUD(currentHero);
+            this.renderOpponents();
+        } catch (error) {
+            console.error("Error loading the hero database:", error);
         }
     }
 
-    renderHand() {
-        const hand = document.getElementById('hand-zone');
-        hand.innerHTML = '';
-        this.localPlayer.hand.forEach(cardId => {
-            const cardData = GameDatabase.cards.find(c => c.id === cardId);
-            const el = document.createElement('div');
-            el.className = 'game-card';
-            el.dataset.id = cardId;
-            el.innerHTML = `<div class="card-header">${cardData.title}</div><div class="card-body">Range: ${cardData.range}<br>Effect: ${cardData.effect}</div>`;
-            el.onclick = () => this.playCard(el, cardData);
-            hand.appendChild(el);
-        });
+    renderHeroHUD(hero) {
+        // Dynamically insert hero name
+        const nameElement = document.querySelector('.hero-name');
+        if (nameElement) nameElement.textContent = `${hero.name} (${hero.faction})`;
+
+        // Build the physical health pips
+        const hpContainer = document.getElementById('local-health');
+        if (hpContainer) {
+            hpContainer.innerHTML = '';
+            for(let i = 0; i < this.localPlayer.maxHp; i++) {
+                hpContainer.innerHTML += `<span class="health-pip ${i < this.localPlayer.hp ? 'active' : 'empty'}"></span>`;
+            }
+        }
     }
 
-    playCard(element, data) {
-        console.log(`Played: ${data.title}`);
-        const stack = document.getElementById('active-play-stack');
-        stack.appendChild(element);
-        element.style.transform = `rotate(${Math.random() * 10 - 5}deg)`;
-        
-        // Example Bagua interaction
-        if(data.title.includes("Strike")) this.bagua.toggle('fire');
+    renderOpponents() {
+        // Grabbing heroes 2, 3, and 4 from our loaded database to populate the board
+        for (let i = 1; i <= 3; i++) {
+            const opponentData = this.heroesDatabase[i];
+            const station = document.getElementById(`opponent-${i}`);
+            
+            if (station && opponentData) {
+                // Keep portrait structural logic but injection text/details dynamically
+                const statsPanel = station.querySelector('.stats-panel');
+                if (statsPanel) {
+                    statsPanel.innerHTML = `<strong>${opponentData.name}</strong><br>🩸 ${opponentData.baseHealth}/${opponentData.baseHealth}`;
+                }
+            }
+        }
     }
 }
 
-// Init
+// Initialize on DOM load
 document.addEventListener('DOMContentLoaded', () => {
     const game = new GameEngine();
     game.init();
 
-    // Simple UI Bindings
-    document.getElementById('btn-settings').onclick = () => {
-        document.getElementById('modal-container').classList.remove('hidden');
-        document.getElementById('modal-settings').classList.remove('hidden');
-    };
-    document.querySelector('.close-modal').onclick = () => {
-        document.getElementById('modal-container').classList.add('hidden');
-        document.getElementById('modal-settings').classList.add('hidden');
-    };
+    // Modal UI Bindings
+    const settingsBtn = document.getElementById('btn-settings');
+    const modalContainer = document.getElementById('modal-container');
+    const modalSettings = document.getElementById('modal-settings');
+    const closeModalBtn = document.querySelector('.close-modal');
+
+    if (settingsBtn && modalContainer && modalSettings) {
+        settingsBtn.onclick = () => {
+            modalContainer.classList.remove('hidden');
+            modalSettings.classList.remove('hidden');
+        };
+    }
+    if (closeModalBtn && modalContainer && modalSettings) {
+        closeModalBtn.onclick = () => {
+            modalContainer.classList.add('hidden');
+            modalSettings.classList.add('hidden');
+        };
+    }
 });
