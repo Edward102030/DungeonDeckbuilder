@@ -1,1 +1,37 @@
-
+{
+  "heroes": [
+    {
+      "id": "hero_001",
+      "name": "Liang, the Righteous Sword",
+      "faction": "Azure Dominion",
+      "baseHealth": 5,
+      "ability": {
+        "name": "Unyielding Justice",
+        "type": "Passive",
+        "description": "Whenever you take damage, draw 1 card."
+      }
+    },
+    {
+      "id": "hero_002",
+      "name": "Jin, the Crimson Spear",
+      "faction": "Crimson Vanguard",
+      "baseHealth": 4,
+      "ability": {
+        "name": "Bloodlust",
+        "type": "Active",
+        "description": "Discard 1 card to increase your Attack Range by 1 for this turn."
+      }
+    },
+    {
+      "id": "hero_003",
+      "name": "Mei, the Silent Gale",
+      "faction": "Obsidian Syndicate",
+      "baseHealth": 4,
+      "ability": {
+        "name": "Shadow Step",
+        "type": "Reaction",
+        "description": "When targeted by an attack, you may discard a card of the same suit to dodge it."
+      }
+    }
+  ]
+}
