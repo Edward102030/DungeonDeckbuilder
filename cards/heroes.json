@@ -32,6 +32,83 @@
         "type": "Reaction",
         "description": "When targeted by an attack, you may discard a card of the same suit to dodge it."
       }
+    },
+    {
+      "id": "hero_004",
+      "name": "Bao, the Iron Mountain",
+      "faction": "Verdant Concord",
+      "baseHealth": 6,
+      "ability": {
+        "name": "Immovable Root",
+        "type": "Passive",
+        "description": "You cannot be forced to discard cards by opponent card effects."
+      }
+    },
+    {
+      "id": "hero_005",
+      "name": "Sun, the Golden Phoenix",
+      "faction": "Golden Empire",
+      "baseHealth": 3,
+      "ability": {
+        "name": "Ashes to Ashes",
+        "type": "Passive",
+        "description": "When your health reaches 0 for the first time, discard your entire hand to restore 2 Health. (Once per game)"
+      }
+    },
+    {
+      "id": "hero_006",
+      "name": "Lin, the Venomous Lotus",
+      "faction": "Obsidian Syndicate",
+      "baseHealth": 4,
+      "ability": {
+        "name": "Toxic Coating",
+        "type": "Active",
+        "description": "During your turn, you may discard a Club card to give your next Attack 'Poison' (target takes 1 damage at the start of their next turn)."
+      }
+    },
+    {
+      "id": "hero_007",
+      "name": "Wei, the Grand Strategist",
+      "faction": "Azure Dominion",
+      "baseHealth": 4,
+      "ability": {
+        "name": "Art of War",
+        "type": "Reaction",
+        "description": "When an opponent plays a Tactical card, you may discard two cards of the same suit to cancel its effect."
+      }
+    },
+    {
+      "id": "hero_008",
+      "name": "Rong, the Blazing Tiger",
+      "faction": "Crimson Vanguard",
+      "baseHealth": 5,
+      "ability": {
+        "name": "Feral Roar",
+        "type": "Active",
+        "description": "Once per turn, discard a Heart card to force all opponents within Range 1 to discard a card."
+      }
+    },
+    {
+      "id": "hero_009",
+      "name": "Kael, the Stormcaller",
+      "faction": "Celestial Tribunal",
+      "baseHealth": 3,
+      "ability": {
+        "name": "Thunder Strike",
+        "type": "Active",
+        "description": "Discard a Spade card to deal 1 damage to any opponent, ignoring distance."
+      }
+    },
+    {
+      "id": "hero_010",
+      "name": "Zara, the Desert Mirage",
+      "faction": "Ember Nomads",
+      "baseHealth": 4,
+      "ability": {
+        "name": "Shifting Sands",
+        "type": "Reaction",
+        "description": "When targeted by an effect, discard a Diamond card to redirect it to another valid target in range."
     }
+  }
   ]
 }
