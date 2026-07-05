@@ -1,6 +1,6 @@
 /**
  * DUNGEON DECKBUILDER
- * Main Engine File - Phase 1 Core Architecture
+ * Main Engine File - Phase 1 (With Mechanics)
  */
 
 // ==========================================
@@ -42,7 +42,6 @@ class InputManager {
 
         if (this.isMobile) {
             document.getElementById('mobile-controls').classList.remove('hidden');
-            // Joystick logic would bind here
         }
     }
 
@@ -54,7 +53,6 @@ class InputManager {
         if (this.keys['KeyA'] || this.keys['ArrowLeft']) dx -= 1;
         if (this.keys['KeyD'] || this.keys['ArrowRight']) dx += 1;
 
-        // Normalize
         if (dx !== 0 && dy !== 0) {
             const length = Math.sqrt(dx * dx + dy * dy);
             dx /= length;
@@ -75,7 +73,6 @@ class UIManager {
             combatUI: document.getElementById('combat-ui'),
             characterSelect: document.getElementById('character-select-screen')
         };
-
         this.bindButtons();
     }
 
@@ -96,7 +93,6 @@ class UIManager {
     }
 
     switchScreen(activeScreenKey) {
-        // Hide all screens
         Object.values(this.screens).forEach(screen => {
             if(screen) {
                 screen.classList.remove('active');
@@ -104,7 +100,6 @@ class UIManager {
             }
         });
         
-        // Show target screen
         if (this.screens[activeScreenKey]) {
             this.screens[activeScreenKey].classList.remove('hidden');
             this.screens[activeScreenKey].classList.add('active');
@@ -119,7 +114,7 @@ class UIManager {
 
     renderHand(cards) {
         const handContainer = document.getElementById('card-hand');
-        handContainer.innerHTML = ''; // Clear existing
+        handContainer.innerHTML = '';
 
         cards.forEach(card => {
             const cardEl = document.createElement('div');
@@ -136,7 +131,7 @@ class UIManager {
 }
 
 // ==========================================
-// 4. ENTITIES (Player & Enemies)
+// 4. ENTITIES & COMBAT LOGIC
 // ==========================================
 class Entity {
     constructor(x, y, radius, color) {
@@ -144,14 +139,47 @@ class Entity {
         this.y = y;
         this.radius = radius;
         this.color = color;
+        this.baseColor = color;
         this.vx = 0;
         this.vy = 0;
-        this.speed = 200; // pixels per second
+        this.speed = 200;
+        
+        // Combat mechanics
+        this.hp = 100;
+        this.maxHp = 100;
+        this.invulnerableTimer = 0;
+    }
+
+    takeDamage(amount) {
+        if (this.invulnerableTimer > 0) return false;
+        
+        this.hp -= amount;
+        this.invulnerableTimer = 0.5; // Half a second of i-frames
+        this.color = '#ffffff'; // Flash white when hit
+        
+        if (this.hp <= 0) {
+            this.hp = 0;
+        }
+        return true;
     }
 
     update(deltaTime) {
         this.x += this.vx * deltaTime;
         this.y += this.vy * deltaTime;
+        
+        // Handle i-frames and color reset
+        if (this.invulnerableTimer > 0) {
+            this.invulnerableTimer -= deltaTime;
+            if (this.invulnerableTimer <= 0) this.color = this.baseColor;
+        }
+    }
+
+    // Helper for circular collision detection
+    collidesWith(other) {
+        const dx = this.x - other.x;
+        const dy = this.y - other.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        return distance < this.radius + other.radius;
     }
 
     draw(ctx) {
@@ -162,21 +190,19 @@ class Entity {
         ctx.shadowColor = this.color;
         ctx.fill();
         ctx.closePath();
-        ctx.shadowBlur = 0; // Reset
+        ctx.shadowBlur = 0;
     }
 }
 
 class Player extends Entity {
     constructor(x, y) {
-        super(x, y, 15, '#66fcf1'); // Neon cyan
-        this.hp = 100;
-        this.maxHp = 100;
+        super(x, y, 15, '#66fcf1');
         this.energy = 3;
         this.maxEnergy = 3;
+        this.armor = 0;
         this.deck = [
-            { id: 1, name: 'Strike', cost: 1, desc: 'Deal 10 damage.' },
-            { id: 2, name: 'Dash', cost: 1, desc: 'Move quickly & gain armor.' },
-            { id: 3, name: 'Fireball', cost: 2, desc: 'Explosive AoE damage.' }
+            { id: 'strike', name: 'Strike', cost: 1, type: 'attack', desc: 'Deal 15 dmg to nearest enemy.' },
+            { id: 'dash', name: 'Dash', cost: 1, type: 'skill', desc: 'Dash & gain armor.' }
         ];
     }
 
@@ -189,14 +215,14 @@ class Player extends Entity {
 
 class Enemy extends Entity {
     constructor(x, y) {
-        super(x, y, 15, '#ff4c4c'); // Neon red
+        super(x, y, 15, '#ff4c4c');
         this.hp = 30;
+        this.maxHp = 30;
         this.speed = 50;
+        this.damage = 10;
     }
     
-    // Future Utility AI Hook
     updateAI(player, deltaTime) {
-        // MVP: Simple seek behavior
         const dx = player.x - this.x;
         const dy = player.y - this.y;
         const dist = Math.sqrt(dx*dx + dy*dy);
@@ -250,23 +276,19 @@ class RenderManager {
 // ==========================================
 class GameManager {
     constructor() {
-        this.state = 'MENU'; // MENU, PLAYING, PAUSED
+        this.state = 'MENU';
         this.lastTime = 0;
         
-        // Initialize Systems
         this.input = new InputManager();
         this.ui = new UIManager();
         this.renderer = new RenderManager('gameCanvas');
         
-        // Game State Data
         this.player = null;
         this.enemies = [];
         
-        // Bind Events
         events.on('START_RUN', () => this.initRun());
         events.on('PLAY_CARD', (card) => this.playCard(card));
         
-        // Start Loop
         requestAnimationFrame((t) => this.loop(t));
     }
 
@@ -274,33 +296,51 @@ class GameManager {
         this.state = 'PLAYING';
         this.player = new Player(this.renderer.canvas.width / 2, this.renderer.canvas.height / 2);
         
-        // Spawn Dummy Enemies
         this.enemies = [
             new Enemy(200, 200),
             new Enemy(this.renderer.canvas.width - 200, 300)
         ];
         
         this.ui.updateHUD(this.player);
-        this.ui.renderHand(this.player.deck); // Draw initial hand
+        this.ui.renderHand(this.player.deck);
     }
 
     playCard(card) {
         if (this.state !== 'PLAYING') return;
-        if (this.player.energy >= card.cost) {
-            this.player.energy -= card.cost;
-            this.ui.updateHUD(this.player);
-            console.log(`Played ${card.name}`);
-            // Future: Card Resolver Engine hooks here
-        } else {
+        if (this.player.energy < card.cost) {
             console.log("Not enough energy!");
+            return;
         }
+
+        this.player.energy -= card.cost;
+        console.log(`Executed: ${card.name}`);
+
+        switch(card.id) {
+            case 'strike':
+                if (this.enemies.length > 0) {
+                    let nearest = this.enemies.reduce((prev, curr) => {
+                        let d1 = Math.hypot(prev.x - this.player.x, prev.y - this.player.y);
+                        let d2 = Math.hypot(curr.x - this.player.x, curr.y - this.player.y);
+                        return d1 < d2 ? prev : curr;
+                    });
+                    nearest.takeDamage(15);
+                }
+                break;
+                
+            case 'dash':
+                this.player.speed = 600;
+                this.player.invulnerableTimer = 0.5;
+                setTimeout(() => this.player.speed = 200, 300);
+                break;
+        }
+
+        this.ui.updateHUD(this.player);
     }
 
     loop(currentTime) {
         const deltaTime = (currentTime - this.lastTime) / 1000;
         this.lastTime = currentTime;
 
-        // Cap deltaTime to prevent huge jumps if tab is inactive
         if (deltaTime < 0.1) {
             this.update(deltaTime);
             this.render();
@@ -312,17 +352,27 @@ class GameManager {
     update(deltaTime) {
         if (this.state !== 'PLAYING') return;
 
-        // 1. Player Update
         this.player.handleInput(this.input);
         this.player.update(deltaTime);
 
-        // 2. Enemy AI Update
-        this.enemies.forEach(enemy => {
+        for (let i = this.enemies.length - 1; i >= 0; i--) {
+            let enemy = this.enemies[i];
             enemy.updateAI(this.player, deltaTime);
             enemy.update(deltaTime);
-        });
+
+            if (enemy.collidesWith(this.player)) {
+                if (this.player.takeDamage(enemy.damage)) {
+                    console.log(`Player hit! HP: ${this.player.hp}`);
+                    this.player.x -= enemy.vx * deltaTime * 5;
+                    this.player.y -= enemy.vy * deltaTime * 5;
+                }
+            }
+
+            if (enemy.hp <= 0) {
+                this.enemies.splice(i, 1);
+            }
+        }
         
-        // 3. Update HUD Data
         this.ui.updateHUD(this.player);
     }
 
@@ -330,9 +380,8 @@ class GameManager {
         this.renderer.clear();
 
         if (this.state === 'PLAYING') {
-            this.renderer.drawGrid(); // Procedural floor texture
+            this.renderer.drawGrid();
             
-            // Draw Entities
             this.enemies.forEach(enemy => enemy.draw(this.renderer.ctx));
             this.player.draw(this.renderer.ctx);
         }
