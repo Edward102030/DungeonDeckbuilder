@@ -4,273 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Legends of the Five Realms</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+SC:wght@400;600;900&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="theme-east-asian">
+<body>
 
-    <div id="match-results-screen" class="screen-overlay hidden">
-        <div class="results-content">
-            <h1 id="match-outcome" class="victory-text">Victory!</h1>
-            <div class="survivor-showcase">
-                </div>
-            <div class="match-stats">
-                <p>Damage Dealt: <span id="stat-dmg">0</span></p>
-                <p>Cards Played: <span id="stat-cards">0</span></p>
-                <p>Enemies Defeated: <span id="stat-kills">0</span></p>
-            </div>
-            <button class="ui-button primary-btn" id="btn-return-lobby">Return to Lobby</button>
+    <header class="game-header">
+        <button id="btn-menu" class="header-btn">MENU</button>
+        <h1 class="game-title">LEGENDS OF THE FIVE REALMS</h1>
+        <div class="header-right">
+            <button id="btn-log" class="header-btn">LOG</button>
+            <button id="btn-settings" class="header-btn">SETTINGS</button>
         </div>
-    </div>
+    </header>
+
+    <main class="game-board">
+        
+        <section class="sidebar-left">
+            <div class="deck-zone draw-deck">
+                <span class="zone-label">DRAW CARD</span>
+                <div class="deck-count">56</div>
+            </div>
+            
+            <div id="opponent-1" class="player-station opponent left-station"></div>
+
+            <div class="deck-zone discard-deck">
+                <span class="zone-label">DISCARD CARD</span>
+                <div class="discard-count">0</div>
+            </div>
+        </section>
+
+        <section class="center-arena">
+            
+            <div id="opponent-2" class="player-station opponent top-station"></div>
+
+            <div class="battle-circle">
+                <div class="inner-circle">
+                    <span class="circle-label">PREVIOUS CARD PLACED</span>
+                    <div id="center-played-card-slot"></div>
+                </div>
+            </div>
+
+            <div class="my-character-block">
+                <span class="block-title">My character</span>
+                <div class="hero-info-hud">
+                    <h2 class="hero-name">Loading Hero...</h2>
+                    <div id="local-health" class="health-bar"></div>
+                </div>
+                <div class="equipment-row">
+                    <span>Weapon</span><span>Armor</span><span>Mount</span><span>Relic</span><span>Banner</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="sidebar-right">
+            <div class="turn-indicator-box">
+                <span class="box-label">Whos Turn</span>
+                <div id="current-turn-display">Player</div>
+            </div>
+
+            <div id="opponent-3" class="player-station opponent right-station"></div>
+
+            <div class="action-panel-right">
+                <div class="phase-list">
+                    <div class="phase-item" data-phase="prep">180</div>
+                    <div class="phase-item" data-phase="draw">Draw</div>
+                    <div class="phase-item" data-phase="action">Action</div>
+                    <div class="phase-item" data-phase="discard">Discard</div>
+                    <div class="phase-item" data-phase="end">End</div>
+                </div>
+                <button id="btn-end-phase" class="end-turn-btn">End Phase</button>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="player-hand-area">
+        <span class="hand-label">HAND CARDS</span>
+        <div id="player-hand" class="cards-fan-container"></div>
+    </footer>
 
     <div id="modal-container" class="hidden">
-        
-        <div id="modal-main-menu" class="modal-content hidden">
-            <h2>Main Menu</h2>
-            <button class="ui-button wide-btn">Resume Game</button>
-            <button class="ui-button wide-btn">Concede Match</button>
-            <button class="ui-button wide-btn">Exit to Lobby</button>
-        </div>
-        
-        <div id="modal-battle-log" class="modal-content hidden">
-            <h2>Battle Log</h2>
-            <ul id="log-entries">
-                </ul>
-            <button class="ui-button close-modal">Close</button>
-        </div>
-
         <div id="modal-settings" class="modal-content hidden">
-            <h2>Settings</h2>
-            <div class="setting-row">
-                <label for="vol-music">Music Volume</label>
-                <input type="range" id="vol-music" min="0" max="100" value="75">
-            </div>
-            <div class="setting-row">
-                <label for="vol-sfx">SFX Volume</label>
-                <input type="range" id="vol-sfx" min="0" max="100" value="100">
-            </div>
-            <button class="ui-button close-modal">Save & Close</button>
+            <h3>Settings</h3>
+            <button class="close-modal">Close</button>
         </div>
-
-        <div id="modal-card-inspector" class="modal-content hidden">
-            <div id="inspector-card-container">
-                </div>
-            <div class="inspector-details">
-                <h3 id="inspector-title">Card Name</h3>
-                <p id="inspector-lore" class="flavor-text">Flavor text goes here...</p>
-                <div id="inspector-rulings"></div>
-            </div>
-            <button class="ui-button close-modal">Close</button>
-        </div>
-        
     </div>
-
-    <div id="game-arena">
-        
-        <header id="top-nav">
-            <div class="nav-left">
-                <button id="btn-menu" class="ui-button" aria-label="Main Menu">☰ Menu</button>
-            </div>
-            <div class="nav-center">
-                <h1 class="game-title">Legends of the Five Realms</h1>
-            </div>
-            <div class="nav-right">
-                <button id="btn-log" class="ui-button" aria-label="Battle Log">📜 Log</button>
-                <button id="btn-settings" class="ui-button" aria-label="Settings">⚙ Settings</button>
-            </div>
-        </header>
-
-        <div id="action-prompt-banner" class="hidden">
-            <span class="prompt-icon">⚠️</span>
-            <h3 id="prompt-message">Select a target</h3>
-            <button id="btn-cancel-action" class="ui-button secondary-btn">Cancel</button>
-        </div>
-
-        <main id="battlefield">
-            
-            <div id="opponent-1" class="opponent-station position-1" data-distance="1">
-                <div class="faction-crest faction-crimson"></div>
-                <div class="hero-portrait portrait-enemy"></div>
-                <div class="stats-panel">
-                    <div class="health-indicator" aria-label="Health">🩸 4/5</div>
-                    <div class="hand-indicator" aria-label="Cards in Hand">🎴 3</div>
-                </div>
-            </div>
-
-            <div id="opponent-2" class="opponent-station position-2" data-distance="2">
-                <div class="faction-crest faction-obsidian"></div>
-                <div class="hero-portrait portrait-enemy"></div>
-                <div class="stats-panel">
-                    <div class="health-indicator" aria-label="Health">🩸 3/4</div>
-                    <div class="hand-indicator" aria-label="Cards in Hand">🎴 5</div>
-                </div>
-            </div>
-
-            <div id="opponent-3" class="opponent-station position-3" data-distance="3">
-                <div class="faction-crest faction-verdant"></div>
-                <div class="hero-portrait portrait-enemy"></div>
-                <div class="stats-panel">
-                    <div class="health-indicator" aria-label="Health">🩸 6/6</div>
-                    <div class="hand-indicator" aria-label="Cards in Hand">🎴 4</div>
-                </div>
-            </div>
-
-            <div id="opponent-4" class="opponent-station position-4 hidden" data-distance="4">
-                </div>
-            
-            <div id="opponent-5" class="opponent-station position-5 hidden" data-distance="3">
-                </div>
-            
-            <div id="opponent-6" class="opponent-station position-6 hidden" data-distance="2">
-                </div>
-            
-            <div id="opponent-7" class="opponent-station position-7 hidden" data-distance="1">
-                </div>
-
-            <div id="center-zone">
-                <div id="bagua-wheel">
-                    <div class="trigram trigram-heaven" data-active="false" title="Qian (Heaven)">☰</div>
-                    <div class="trigram trigram-wind" data-active="false" title="Xun (Wind)">☴</div>
-                    <div class="trigram trigram-water" data-active="false" title="Kan (Water)">☵</div>
-                    <div class="trigram trigram-mountain" data-active="false" title="Gen (Mountain)">☶</div>
-                    <div class="trigram trigram-earth" data-active="false" title="Kun (Earth)">☷</div>
-                    <div class="trigram trigram-thunder" data-active="false" title="Zhen (Thunder)">☳</div>
-                    <div class="trigram trigram-fire" data-active="false" title="Li (Fire)">☲</div>
-                    <div class="trigram trigram-lake" data-active="false" title="Dui (Lake)">☱</div>
-                </div>
-                
-                <div id="active-play-stack">
-                    <div class="target-tether" style="display: none;"></div>
-                </div>
-            </div>
-
-        </main>
-
-        <footer id="player-dashboard">
-            
-            <div id="hero-hud">
-                <div class="faction-crest faction-azure"></div>
-                <div class="hero-portrait portrait-local-player"></div>
-                <div class="hero-details">
-                    <h2 class="hero-name">Liang, the Righteous Sword</h2>
-                    <div class="hero-health" id="local-health">
-                        <span class="health-pip active"></span>
-                        <span class="health-pip active"></span>
-                        <span class="health-pip active"></span>
-                        <span class="health-pip active"></span>
-                        <span class="health-pip empty"></span>
-                    </div>
-                    <div class="status-tray" id="local-status"></div> 
-                </div>
-            </div>
-            
-            <div id="equipment-zone">
-                <div class="equip-slot" data-slot="weapon" title="Weapon">
-                    <span class="slot-label">Weapon</span>
-                </div>
-                <div class="equip-slot" data-slot="armor" title="Armor">
-                    <span class="slot-label">Armor</span>
-                </div>
-                <div class="equip-slot" data-slot="mount" title="Mount">
-                    <span class="slot-label">Mount</span>
-                </div>
-                <div class="equip-slot" data-slot="relic" title="Relic">
-                    <span class="slot-label">Relic</span>
-                </div>
-                <div class="equip-slot" data-slot="banner" title="Banner">
-                    <span class="slot-label">Banner</span>
-                </div>
-            </div>
-
-            <div id="hand-zone">
-                <div class="game-card card-basic-attack" data-id="card-001" data-suit="spades" data-rank="6">
-                    <div class="card-header">
-                        <div class="card-rank-suit">
-                            <span class="rank">6</span>
-                            <span class="suit suit-spades">♠</span>
-                        </div>
-                        <div class="card-title">Piercing Strike</div>
-                    </div>
-                    <div class="card-art art-piercing-strike"></div>
-                    <div class="card-type-bar">Basic - Attack</div>
-                    <div class="card-body">
-                        <p class="card-effect">Deal 1 damage to a target within your attack range.</p>
-                        <p class="card-flavor">"Swift as the wind, sharp as the spear."</p>
-                    </div>
-                    <div class="card-footer">
-                        <span class="card-range-icon">🏹 Range: 1</span>
-                    </div>
-                </div>
-
-                <div class="game-card card-basic-defense" data-id="card-002" data-suit="hearts" data-rank="2">
-                    <div class="card-header">
-                        <div class="card-rank-suit">
-                            <span class="rank">2</span>
-                            <span class="suit suit-hearts">♥</span>
-                        </div>
-                        <div class="card-title">Guard Stance</div>
-                    </div>
-                    <div class="card-art art-guard-stance"></div>
-                    <div class="card-type-bar">Basic - Defense</div>
-                    <div class="card-body">
-                        <p class="card-effect">Cancel 1 damage from an attack. (Play when you are targeted)</p>
-                        <p class="card-flavor">"A solid defense turns the tide."</p>
-                    </div>
-                </div>
-
-                <div class="game-card card-tactical-aoe" data-id="card-003" data-suit="clubs" data-rank="7">
-                    <div class="card-header">
-                        <div class="card-rank-suit">
-                            <span class="rank">7</span>
-                            <span class="suit suit-clubs">♣</span>
-                        </div>
-                        <div class="card-title">Whirlwind Slash</div>
-                    </div>
-                    <div class="card-art art-whirlwind-slash"></div>
-                    <div class="card-type-bar">Tactical - AoE</div>
-                    <div class="card-body">
-                        <p class="card-effect">Deal 1 damage to all other players within your attack range.</p>
-                        <p class="card-flavor">"Spin like a storm, cut all in your path."</p>
-                    </div>
-                </div>
-            </div>
-
-            <div id="turn-controls">
-                
-                <div id="deck-discard-zone">
-                    <div class="deck-pile" title="Shared Deck">
-                        <span class="card-count" id="deck-count">180</span>
-                    </div>
-                    <div class="discard-pile" title="Discard Pile">
-                        <span class="card-count" id="discard-count">0</span>
-                    </div>
-                </div>
-
-                <div id="phase-tracker">
-                    <div class="phase" id="phase-prep">Prep</div>
-                    <div class="phase" id="phase-draw">Draw</div>
-                    <div class="phase active-phase" id="phase-action">Action</div>
-                    <div class="phase" id="phase-discard">Discard</div>
-                    <div class="phase" id="phase-end">End</div>
-                </div>
-                
-                <button id="btn-end-phase" class="action-button primary-btn">End Phase</button>
-            </div>
-
-        </footer>
-        
-    </div>
-
-    <div id="global-tooltip" class="hidden">
-        <h4 id="tooltip-title">Tooltip Title</h4>
-        <p id="tooltip-desc">Description of the status effect, keyword, or trigram.</p>
-    </div>
-
-    <div id="vfx-layer"></div>
 
     <script src="app.js"></script>
 </body>
