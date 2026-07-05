@@ -1,60 +1,222 @@
-:root {
-    --jade-primary: #2d6a4f;
-    --jade-light: #52b788;
-    --ink-dark: #0b0f19;
-    --ink-light: #1c2536;
-    --gold-trim: #d4af37;
-    --parchment: #f4ebd0;
-    --crimson: #9e2a2b;
-    --font-heading: 'Cinzel', serif;
-    --font-body: 'Noto Serif SC', serif;
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-
-body.theme-east-asian {
-    background-color: var(--ink-dark);
-    color: var(--parchment);
-    font-family: var(--font-body);
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background-color: #0b0f19;
+    color: #ffffff;
+    font-family: 'Georgia', serif;
     overflow: hidden;
     height: 100vh;
     display: flex;
     flex-direction: column;
 }
 
-/* UI Basics */
+/* Header Utilities */
+.game-header {
+    height: 50px;
+    background: #000;
+    border-bottom: 2px solid #b89c30;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+}
+.game-title { font-size: 1.2rem; color: #e5c158; letter-spacing: 2px; }
+.header-btn {
+    background: #111;
+    color: #ff4d4d;
+    border: 1px solid #ff4d4d;
+    padding: 4px 12px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Core Layout Map Grid */
+.game-board {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 200px 1fr 200px;
+    height: calc(100vh - 170px);
+}
+
+/* Sidebar Utilities */
+.sidebar-left, .sidebar-right {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid #b89c30;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 10px;
+}
+
+.deck-zone {
+    width: 120px;
+    height: 160px;
+    border: 2px solid #ff4d4d;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #ff4d4d;
+}
+.deck-count, .discard-count { font-size: 1.5rem; font-weight: bold; margin-top: 10px; }
+
+/* Center Arena Arrangement */
+.center-arena {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    position: relative;
+}
+
+/* Positioning Player Stations */
+.player-station {
+    width: 140px;
+    height: 110px;
+    border: 1px solid #4ade80;
+    border-radius: 8px;
+    padding: 10px;
+    background: rgba(0,0,0,0.6);
+    text-align: center;
+}
+.inner-hero-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #4ade80;
+    margin: 5px auto;
+    background: #222;
+}
+
+/* Central Battle Placement Ring */
+.battle-circle {
+    width: 260px;
+    height: 260px;
+    border: 2px dashed #ff4d4d;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.inner-circle {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #ff4d4d;
+}
+
+/* Character HUD Block */
+.my-character-block {
+    width: 240px;
+    border: 2px solid #ff4d4d;
+    background: rgba(0,0,0,0.8);
+    padding: 8px;
+    text-align: center;
+}
+.equipment-row {
+    display: flex;
+    justify-content: space-around;
+    font-size: 0.65rem;
+    color: #aaa;
+    margin-top: 5px;
+    border-top: 1px solid #333;
+    padding-top: 4px;
+}
+
+/* Right Column Utilities */
+.turn-indicator-box {
+    width: 100%;
+    border: 2px solid #ff4d4d;
+    padding: 10px;
+    text-align: center;
+}
+.action-panel-right {
+    width: 100%;
+    text-align: right;
+    font-size: 0.85rem;
+}
+.end-turn-btn {
+    background: #111;
+    color: #fff;
+    border: 1px solid #fff;
+    padding: 4px 8px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+/* Hand Cards Bottom Overlay Layout */
+.player-hand-area {
+    height: 120px;
+    background: #000;
+    border-top: 2px solid #b89c30;
+    position: relative;
+    padding-left: 120px;
+}
+.hand-label {
+    position: absolute;
+    left: 20px;
+    top: 45%;
+    color: #ff4d4d;
+    font-size: 0.9rem;
+}
+.cards-fan-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    height: 100%;
+    padding-bottom: 5px;
+    gap: -20px; /* Slight card overlap layout */
+}
+
+/* New Clean Layout Card Design: Name, Art Asset, Poker Suit Only */
+.game-card {
+    width: 90px;
+    height: 110px;
+    background: #fff;
+    color: #000;
+    border-radius: 4px;
+    border: 1px solid #444;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 4px;
+    font-family: Arial, sans-serif;
+    position: relative;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+.card-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+.card-title-text {
+    max-width: 60px;
+    line-height: 0.85;
+    font-size: 0.7rem;
+}
+.card-poker-value { font-size: 0.85rem; }
+.red-suit { color: #ff2a2a; }
+
+/* Image Placeholder Vector Box */
+.card-art-box {
+    flex: 1;
+    margin: 4px 0 2px 0;
+    background: #e0e4ec;
+    border: 1px solid #aaa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.art-icon {
+    font-size: 1.2rem;
+    opacity: 0.5;
+}
+
+.health-bar { display: flex; justify-content: center; gap: 4px; margin-top: 4px; }
+.health-pip { width: 8px; height: 8px; border-radius: 50%; background: #333; }
+.health-pip.active { background: #ff4d4d; }
 .hidden { display: none !important; }
-.ui-button { background: var(--ink-light); color: var(--gold-trim); border: 1px solid var(--gold-trim); padding: 5px 10px; cursor: pointer; }
-
-/* Layout */
-#game-arena { display: flex; flex-direction: column; height: 100%; width: 100%; }
-#top-nav { height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 2px solid var(--gold-trim); }
-.game-title { font-family: var(--font-heading); color: var(--gold-trim); font-size: 24px; }
-
-/* Battlefield */
-#battlefield { flex-grow: 1; position: relative; display: flex; justify-content: center; align-items: center; }
-.opponent-station { position: absolute; width: 100px; background: rgba(28, 37, 54, 0.85); border: 1px solid var(--gold-trim); border-radius: 8px; padding: 10px; text-align: center; }
-.position-1 { top: 40%; left: 10%; transform: translateY(-50%); }
-.position-2 { top: 10%; left: 50%; transform: translateX(-50%); }
-.position-3 { top: 40%; right: 10%; transform: translateY(-50%); }
-.hero-portrait { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--jade-light); margin: 0 auto 5px auto; background-color: #333; }
-
-/* Bagua & Center */
-#center-zone { position: relative; width: 300px; height: 300px; display: flex; justify-content: center; align-items: center; }
-#bagua-wheel { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 1px dashed rgba(212, 175, 55, 0.3); }
-.trigram { position: absolute; font-size: 24px; color: rgba(244, 235, 208, 0.3); }
-.trigram-heaven { top: -30px; left: 50%; transform: translateX(-50%); }
-.trigram-fire { bottom: -30px; left: 50%; transform: translateX(-50%); }
-.trigram-water { top: 50%; left: -30px; transform: translateY(-50%); }
-.trigram[data-active="true"] { color: var(--jade-light); text-shadow: 0 0 15px var(--jade-light); }
-
-/* Dashboard & Cards */
-#player-dashboard { height: 200px; background: rgba(11, 15, 25, 0.9); display: flex; justify-content: space-between; align-items: flex-end; padding: 20px; border-top: 2px solid var(--gold-trim); }
-#hand-zone { display: flex; gap: -20px; perspective: 1000px; }
-.game-card { width: 120px; height: 170px; background: var(--parchment); color: var(--ink-dark); border: 2px solid var(--ink-light); border-radius: 8px; margin: 0 -10px; display: flex; flex-direction: column; cursor: pointer; transition: transform 0.2s, z-index 0.2s; }
-.game-card:hover { transform: translateY(-20px) scale(1.05); z-index: 100; border-color: var(--gold-trim); box-shadow: 0 0 15px rgba(212, 175, 55, 0.5); }
-.card-header { padding: 5px; border-bottom: 1px solid var(--ink-light); font-weight: bold; font-size: 12px; text-align: center; }
-.card-body { padding: 5px; font-size: 10px; }
-.health-pip { display: inline-block; width: 15px; height: 15px; border-radius: 50%; margin-right: 2px; }
-.health-pip.active { background-color: var(--crimson); box-shadow: 0 0 5px var(--crimson); }
-.health-pip.empty { background-color: #333; }
