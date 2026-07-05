@@ -1,4 +1,37 @@
-/* Reset and Base Styles */
+/* ==========================================
+   1. VARIABLES & THEMING
+   ========================================== */
+:root {
+    /* Color Palette */
+    --bg-dark: #0b0c10;
+    --bg-panel: rgba(31, 40, 51, 0.85);
+    --bg-card: #1f2833;
+    
+    /* Neon Accents */
+    --neon-cyan: #66fcf1;
+    --neon-cyan-muted: #45a29e;
+    --neon-red: #ff4c4c;
+    --neon-green: #4cff4c;
+    --neon-blue: #4da6ff;
+    --neon-yellow: #ffd700;
+    --neon-purple: #b366ff;
+    
+    /* Typography */
+    --text-main: #c5c6c7;
+    --text-light: #ffffff;
+    
+    /* Sizing & Borders */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 16px;
+    --border-glow: 0 0 10px rgba(102, 252, 241, 0.5);
+    --transition-fast: 0.15s ease-out;
+    --transition-smooth: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* ==========================================
+   2. RESET & BASE
+   ========================================== */
 * {
     margin: 0;
     padding: 0;
@@ -9,14 +42,23 @@ body, html {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background-color: #0b0c10; /* Deep dark fantasy base */
-    color: #c5c6c7; /* Readable off-white */
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    touch-action: none; /* Disables default browser swipe actions */
-    user-select: none; /* Prevents text highlighting when clicking rapidly */
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
-/* Canvas styling */
+h1, h2, h3, h4 {
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* ==========================================
+   3. LAYERS & SCREENS
+   ========================================== */
 #gameCanvas {
     display: block;
     width: 100%;
@@ -27,7 +69,6 @@ body, html {
     z-index: 1;
 }
 
-/* UI Overlay styling */
 #ui-layer {
     position: absolute;
     top: 0;
@@ -35,10 +76,445 @@ body, html {
     width: 100%;
     height: 100%;
     z-index: 10;
-    pointer-events: none; /* Let clicks pass through to the canvas by default */
+    pointer-events: none; /* Let clicks pass to canvas */
+    display: flex;
+    flex-direction: column;
 }
 
-/* Re-enable pointer events for actual UI elements (buttons, cards, etc.) */
-#ui-layer > div {
+/* Re-enable pointer events for interactive elements */
+#ui-layer button, 
+#ui-layer .card,
+#ui-layer input,
+#ui-layer .sub-screen,
+#ui-layer #mobile-controls {
     pointer-events: auto;
+}
+
+/* Screen Management */
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.sub-screen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg-panel);
+    border: 2px solid var(--neon-cyan-muted);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.8), inset 0 0 10px rgba(69, 162, 158, 0.2);
+    border-radius: var(--radius-lg);
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    min-width: 300px;
+    max-width: 90%;
+    max-height: 90%;
+    backdrop-filter: blur(5px);
+}
+
+.hidden {
+    display: none !important;
+}
+
+.active {
+    display: flex;
+    animation: fadeIn var(--transition-smooth);
+}
+
+/* ==========================================
+   4. TYPOGRAPHY & TITLES
+   ========================================== */
+.game-title {
+    font-size: 3rem;
+    text-align: center;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 15px var(--neon-cyan), 0 0 30px var(--neon-cyan-muted);
+    margin-bottom: 40px;
+}
+
+/* ==========================================
+   5. BUTTONS & CONTROLS
+   ========================================== */
+.ui-button {
+    background: transparent;
+    color: var(--neon-cyan);
+    border: 1px solid var(--neon-cyan);
+    padding: 12px 24px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    box-shadow: 0 0 5px rgba(102, 252, 241, 0.2);
+}
+
+.ui-button:hover {
+    background: rgba(102, 252, 241, 0.1);
+    box-shadow: var(--border-glow);
+    transform: translateY(-2px);
+}
+
+.ui-button:active {
+    transform: translateY(1px);
+}
+
+.ui-button.primary {
+    background: rgba(102, 252, 241, 0.2);
+    border-width: 2px;
+}
+
+.ui-button.warning {
+    color: var(--neon-yellow);
+    border-color: var(--neon-yellow);
+}
+
+.ui-button.warning:hover {
+    background: rgba(255, 215, 0, 0.1);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.ui-button.danger {
+    color: var(--neon-red);
+    border-color: var(--neon-red);
+}
+
+.ui-button.danger:hover {
+    background: rgba(255, 76, 76, 0.1);
+    box-shadow: 0 0 10px rgba(255, 76, 76, 0.5);
+}
+
+/* ==========================================
+   6. MENUS & SETTINGS
+   ========================================== */
+#main-menu {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at center, #1f2833 0%, #0b0c10 100%);
+}
+
+.menu-options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 250px;
+}
+
+.menu-options .ui-button {
+    width: 100%;
+}
+
+.settings-group {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+}
+
+.settings-group label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1rem;
+}
+
+input[type=range] {
+    accent-color: var(--neon-cyan);
+}
+
+/* ==========================================
+   7. IN-GAME HUD
+   ========================================== */
+#hud {
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+    pointer-events: none;
+}
+
+.hud-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+}
+
+/* Stat Bars */
+.player-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.stat-bar {
+    width: 200px;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid #333;
+    border-radius: var(--radius-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    width: 100%;
+    transition: width var(--transition-smooth);
+}
+
+.health-bar .bar-fill {
+    background: linear-gradient(90deg, #990000 0%, var(--neon-red) 100%);
+    box-shadow: 0 0 10px var(--neon-red);
+}
+
+.armor-bar .bar-fill {
+    background: linear-gradient(90deg, #666 0%, #ccc 100%);
+}
+
+.bar-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 1px 1px 2px #000;
+}
+
+.energy-indicator {
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid var(--neon-blue);
+    color: var(--neon-blue);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(77, 166, 255, 0.5);
+}
+
+/* Run Info */
+.run-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.gold-indicator span { color: var(--neon-yellow); }
+.floor-indicator span { color: var(--text-light); }
+
+/* ==========================================
+   8. COMBAT & CARDS
+   ========================================== */
+#combat-ui {
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding-bottom: 20px;
+}
+
+.deck-zones {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 30px;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.pile {
+    width: 60px;
+    height: 80px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px dashed var(--neon-cyan-muted);
+    border-radius: var(--radius-sm);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--neon-cyan);
+}
+
+.hand-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 10px;
+    height: 180px;
+}
+
+/* Procedural Card Styling (Used by JS) */
+.card {
+    width: 120px;
+    height: 170px;
+    background: var(--bg-card);
+    border: 2px solid #555;
+    border-radius: var(--radius-md);
+    position: relative;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+.card:hover {
+    transform: translateY(-20px) scale(1.1);
+    border-color: var(--neon-cyan);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.8), var(--border-glow);
+    z-index: 100;
+}
+
+.card-cost {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    width: 30px;
+    height: 30px;
+    background: var(--bg-dark);
+    border: 2px solid var(--neon-blue);
+    color: var(--neon-blue);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    box-shadow: 0 0 5px var(--neon-blue);
+}
+
+.card-name {
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    color: var(--text-light);
+}
+
+.card-desc {
+    font-size: 0.7rem;
+    text-align: center;
+    color: var(--text-main);
+    flex-grow: 1;
+}
+
+/* ==========================================
+   9. GLOBAL TOOLTIP
+   ========================================== */
+.tooltip {
+    position: absolute;
+    background: rgba(11, 12, 16, 0.95);
+    border: 1px solid var(--neon-cyan-muted);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    min-width: 150px;
+    pointer-events: none;
+    z-index: 9999;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.8);
+    transition: opacity 0.1s;
+}
+
+.tooltip h4 { margin-bottom: 5px; color: var(--neon-cyan); font-size: 0.9rem; }
+.tooltip p { font-size: 0.8rem; color: var(--text-main); }
+
+/* ==========================================
+   10. MOBILE CONTROLS
+   ========================================== */
+#mobile-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    height: 150px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    pointer-events: none; /* Let canvas handle touches if needed */
+}
+
+.joystick-base {
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    position: relative;
+    pointer-events: auto;
+}
+
+.joystick-knob {
+    width: 50px;
+    height: 50px;
+    background: rgba(102, 252, 241, 0.5);
+    border-radius: 50%;
+    position: absolute;
+    top: 35px;
+    left: 35px;
+    pointer-events: none;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    pointer-events: auto;
+}
+
+.mobile-action-btn {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    font-weight: bold;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+
+.mobile-action-btn:active {
+    background: rgba(102, 252, 241, 0.4);
+    border-color: var(--neon-cyan);
+}
+
+/* ==========================================
+   11. ANIMATIONS & KEYFRAMES
+   ========================================== */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 5px rgba(102, 252, 241, 0.2); }
+    50% { box-shadow: 0 0 15px rgba(102, 252, 241, 0.6); }
+    100% { box-shadow: 0 0 5px rgba(102, 252, 241, 0.2); }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Helper utility for JS injected elements */
+.animate-slide-up {
+    animation: slideUp var(--transition-fast);
 }
