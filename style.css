@@ -1,0 +1,44 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #0b0c10; /* Deep dark fantasy base */
+    color: #c5c6c7; /* Readable off-white */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    touch-action: none; /* Disables default browser swipe actions */
+    user-select: none; /* Prevents text highlighting when clicking rapidly */
+}
+
+/* Canvas styling */
+#gameCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+/* UI Overlay styling */
+#ui-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none; /* Let clicks pass through to the canvas by default */
+}
+
+/* Re-enable pointer events for actual UI elements (buttons, cards, etc.) */
+#ui-layer > div {
+    pointer-events: auto;
+}
